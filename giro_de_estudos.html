@@ -1,0 +1,712 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<title>Giro de Estudos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: cabeçalho com métricas, abas, e painel duplo (anel do ciclo + lista de sessões). Dark first. */
+:root{
+  --bg:#0e1416; --surface:#151d20; --surface2:#1c272b; --line:#26343a; --track:#233036;
+  --fg:#e8eeec; --muted:#8fa2a5; --accent:#f2a93b; --accent-ink:#1a1203; --accent-text:#f2a93b;
+  --ok:#3fb8a5; --bad:#e5675a; --easy:#3fb8a5; --mid:#e0b04a; --hard:#e5675a;
+  --f-display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --f-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  --bg:#f2f5f2; --surface:#ffffff; --surface2:#e9efeb; --line:#d3dcd7; --track:#dde6e1;
+  --fg:#142022; --muted:#566a6d; --accent:#e39a1f; --accent-ink:#1a1203; --accent-text:#8a5100;
+  --ok:#12806f; --bad:#b93a2e; --easy:#12806f; --mid:#8a6a10; --hard:#b93a2e; color-scheme:light}}
+:root[data-theme="light"]{
+  --bg:#f2f5f2; --surface:#ffffff; --surface2:#e9efeb; --line:#d3dcd7; --track:#dde6e1;
+  --fg:#142022; --muted:#566a6d; --accent:#e39a1f; --accent-ink:#1a1203; --accent-text:#8a5100;
+  --ok:#12806f; --bad:#b93a2e; --easy:#12806f; --mid:#8a6a10; --hard:#b93a2e; color-scheme:light}
+
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--f-body);
+  padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;gap:16px 24px;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand svg{flex:none}
+.brand h1{font-size:1.6rem;line-height:1}
+.brand span{display:block;color:var(--muted);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+.top-right{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.stats{display:flex;flex-wrap:wrap;gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 14px;min-width:110px}
+.stat b{display:block;font:600 1.25rem/1.1 var(--f-mono);font-variant-numeric:tabular-nums}
+.stat small{color:var(--muted);font-size:.74rem;letter-spacing:.06em;text-transform:uppercase}
+.stat.hot b{color:var(--accent-text)}
+.stat.ok b{color:var(--ok)}
+
+/* tabs */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;color:var(--muted);font-weight:500;white-space:nowrap;margin-bottom:-1px}
+.tab:hover{color:var(--fg)}
+.tab[aria-current="page"]{color:var(--fg);border-bottom-color:var(--accent)}
+.tab .n{font:600 .72rem var(--f-mono);background:var(--accent);color:var(--accent-ink);border-radius:99px;padding:1px 7px;margin-left:6px}
+
+/* buttons */
+.btn{border:1px solid var(--line);background:var(--surface2);border-radius:8px;padding:8px 16px;font-weight:600;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:5px 12px;font-size:.85rem}
+.btn.icon{padding:7px 10px;font-size:.85rem}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+
+/* ciclo */
+.grid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:880px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;min-width:0}
+.ringbox{position:relative;max-width:340px;margin:0 auto}
+.ringbox svg{display:block;width:100%;height:auto}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 22%;gap:4px}
+.ring-center .eyebrow{font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ring-center h2{font-size:1.15rem;line-height:1.15}
+.ring-center p{margin:0;color:var(--muted);font-size:.85rem}
+.ring-center .btn{margin-top:8px}
+.legend{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 16px;margin:14px 0 0;color:var(--muted);font-size:.82rem}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.lapstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.lapstats div{background:var(--surface2);border-radius:10px;padding:10px 12px}
+.lapstats b{display:block;font:600 1.05rem var(--f-mono)}
+.lapstats small{color:var(--muted);font-size:.72rem;letter-spacing:.05em;text-transform:uppercase}
+
+.goal-box{margin-top:14px;background:var(--surface2);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.goal-top{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;gap:8px}
+.goal-top b{font-family:var(--f-mono)}
+
+.sec-head{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-bottom:14px}
+.sec-head h2{font-size:1.25rem}
+.sec-head .actions{display:flex;gap:8px;flex-wrap:wrap}
+.rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;background:var(--surface2);border:1px solid transparent;border-radius:12px;padding:12px 14px}
+.row.now{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface2))}
+.row.done{opacity:.72}
+.num{flex:none;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font:600 .85rem var(--f-mono)}
+.row.now .num{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.row.done .num{background:var(--ok);border-color:var(--ok);color:var(--bg)}
+.r-main{flex:1 1 180px;min-width:0}
+.r-main b{display:block;font:600 .95rem var(--f-display);text-transform:uppercase;letter-spacing:.02em}
+.r-sub{color:var(--muted);font-size:.85rem}
+.bar{height:4px;background:var(--track);border-radius:4px;margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);border-radius:4px}
+.row.now .bar i{background:var(--accent)}
+.chip{font:600 .75rem var(--f-mono);border:1px solid var(--line);border-radius:99px;padding:2px 10px;color:var(--muted)}
+.chip.due{color:var(--accent-text);border-color:color-mix(in srgb,var(--accent) 50%,var(--line))}
+.chip.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 50%,var(--line))}
+.tag{font-size:.78rem;font-weight:600;padding:2px 10px;border-radius:99px;border:1px solid currentColor}
+.d-fácil{color:var(--easy)}.d-médio{color:var(--mid)}.d-difícil{color:var(--hard)}
+.edit-in{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px;align-items:center}
+.edit-in input,.edit-in select,.field input,.field select,.field textarea{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:0}
+.edit-in input[type=text]{flex:1 1 140px}
+.edit-in input[type=number]{width:84px}
+
+.addsub{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+.addsub input[type=text]{flex:1 1 180px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+.addsub input[type=number]{width:90px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.addsub select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+
+/* estudo */
+.study{max-width:820px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:16px}
+.study-head{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+.study-head h2{font-size:1.3rem}
+.clock{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;justify-content:space-between}
+.clock-left{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.clock .t{font:600 1.65rem var(--f-mono);font-variant-numeric:tabular-nums}
+.clock .m{color:var(--muted);font-size:.85rem}
+.clock-actions{display:flex;gap:6px;flex-wrap:wrap}
+.progress{height:6px;background:var(--track);border-radius:6px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);transition:width .4s}
+.banner{background:color-mix(in srgb,var(--ok) 14%,var(--surface));border:1px solid var(--ok);border-radius:12px;padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 24px;min-height:240px;display:flex;flex-direction:column;gap:18px}
+.card .lab{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.card .q{font:600 1.35rem/1.35 var(--f-display);text-wrap:pretty}
+.card .a{border-top:1px dashed var(--line);padding-top:16px;font-size:1.05rem;line-height:1.55}
+.card .a .lab{color:var(--accent-text);margin-bottom:6px}
+.rate{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:520px){.rate{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.rate button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 6px;border-radius:10px;background:var(--surface2);border:1px solid var(--line);font-weight:600}
+.rate button small{font:400 .75rem var(--f-mono);color:var(--muted)}
+.rate .r0{border-color:var(--bad)}.rate .r1{border-color:var(--mid)}.rate .r2{border-color:var(--ok)}.rate .r3{border-color:var(--accent)}
+.rate button:hover{background:var(--surface)}
+.hint{color:var(--muted);font-size:.8rem;text-align:center;margin:0}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:32px 20px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+.empty h3{font-size:1.2rem}
+.empty p{margin:0;color:var(--muted);max-width:46ch}
+
+.study-tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.stool{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.stool h3{font-size:.98rem}
+.q-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.q-row input{width:76px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-family:var(--f-mono)}
+.stool textarea,.stool input[type=text]{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;width:100%}
+.stool textarea{min-height:68px;resize:vertical}
+
+/* criar e lista */
+.create-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;align-items:start}
+.form{display:flex;flex-direction:column;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.field textarea{min-height:96px;resize:vertical}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.toolbar input,.toolbar select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+.toolbar input{flex:1 1 200px}
+.clist{display:flex;flex-direction:column;gap:8px}
+.ci{background:var(--surface2);border-radius:12px;padding:12px 14px;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:flex-start}
+.ci .tx{flex:1 1 260px;min-width:0}
+.ci .tx b{display:block;font-weight:600;overflow-wrap:anywhere}
+.ci .tx span{display:block;color:var(--muted);font-size:.9rem;overflow-wrap:anywhere;margin-top:2px}
+.ci .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* painel de desempenho */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;align-items:start}
+.chart-bars{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end;height:150px;padding-top:20px;border-bottom:1px solid var(--line)}
+.c-col{display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.c-col .val{font:600 .72rem var(--f-mono);color:var(--muted)}
+.c-col .pillar{width:100%;max-width:34px;background:var(--ok);border-radius:6px 6px 0 0;min-height:4px;transition:height .3s}
+.c-col.today .pillar{background:var(--accent)}
+.c-col .lbl{font:500 .74rem var(--f-mono);color:var(--muted);padding-top:4px}
+.table-wrap{overflow-x:auto}
+table.perf{width:100%;border-collapse:collapse;font-size:.9rem}
+table.perf th,table.perf td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
+table.perf th{font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+table.perf td.num-c{font-family:var(--f-mono);text-align:right}
+table.perf th.num-c{text-align:right}
+
+.foot{color:var(--muted);font-size:.8rem;text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--fg);color:var(--bg);padding:9px 18px;border-radius:99px;font-weight:600;font-size:.9rem;opacity:0;pointer-events:none;transition:.25s;z-index:20}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head><body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="14" fill="none" stroke="var(--track)" stroke-width="6"/><path d="M20 6 A14 14 0 0 1 34 20" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"/><path d="M34 20 A14 14 0 0 1 20 34" fill="none" stroke="var(--ok)" stroke-width="6" stroke-linecap="round"/></svg>
+      <div><h1>Giro</h1><span>Ciclo de estudos para concursos</span></div>
+    </div>
+    <div class="top-right">
+      <div class="stats" id="stats"></div>
+      <button class="btn icon ghost" data-a="theme" title="Alternar tema claro/escuro" aria-label="Alternar tema">◐</button>
+    </div>
+  </header>
+  <nav class="tabs" id="nav" aria-label="Seções"></nav>
+  <main id="main"></main>
+  <p class="foot">Seus cartões, questões e progresso ficam salvos neste navegador · Você pode exportar um backup na aba Desempenho.</p>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const KEY='giro.v1', DAY=864e5;
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=s=>document.querySelector(s);
+const dkey=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+
+function seed(){
+  const subjects=[
+    {id:'trib',name:'Direito Tributário',target:35,diff:'médio',done:12*60,totalSec:12*60,qDone:15,qHit:12,notes:''},
+    {id:'cont',name:'Contabilidade Geral',target:35,diff:'difícil',done:0,totalSec:0,qDone:10,qHit:7,notes:''},
+    {id:'cons',name:'Direito Constitucional',target:25,diff:'médio',done:0,totalSec:0,qDone:20,qHit:17,notes:''},
+    {id:'econ',name:'Economia',target:30,diff:'médio',done:0,totalSec:0,qDone:0,qHit:0,notes:''},
+    {id:'adm',name:'Direito Administrativo',target:20,diff:'fácil',done:0,totalSec:0,qDone:12,qHit:10,notes:''},
+    {id:'rl',name:'Raciocínio Lógico',target:20,diff:'fácil',done:0,totalSec:0,qDone:8,qHit:7,notes:''}
+  ];
+  const C=[
+   ['trib','Anterioridade anual (art. 150, III, "b", CF): o que veda?','Cobrar tributo no mesmo exercício financeiro em que foi publicada a lei que o instituiu ou aumentou.'],
+   ['trib','Noventena (art. 150, III, "c", CF): o que veda?','Cobrar tributo antes de decorridos 90 dias da data da publicação da lei que o instituiu ou aumentou.'],
+   ['trib','Fato gerador da obrigação principal, segundo o CTN.','Situação definida em lei como necessária e suficiente à sua ocorrência (art. 114, CTN).'],
+   ['trib','Diferença entre imunidade e isenção.','Imunidade é limitação constitucional ao poder de tributar. Isenção é exclusão do crédito tributário, concedida por lei do ente competente (art. 175, I, CTN).'],
+   ['cont','Equação fundamental do patrimônio.','Ativo = Passivo + Patrimônio Líquido.'],
+   ['cont','O que diz o regime de competência?','Receitas e despesas são reconhecidas no período em que ocorrem os fatos geradores, independentemente do recebimento ou do pagamento.'],
+   ['cont','O que são contas retificadoras do Ativo? Dê exemplos.','Contas de saldo credor que reduzem o valor de contas do Ativo. Exemplos: depreciação acumulada e PECLD.'],
+   ['cont','Fórmula do índice de liquidez corrente.','Ativo Circulante ÷ Passivo Circulante.'],
+   ['cons','Quais são os remédios constitucionais?','Habeas corpus, habeas data, mandado de segurança (individual e coletivo), mandado de injunção e ação popular.'],
+   ['cons','Qual a duração do mandato do Presidente da República?','4 anos, com possibilidade de uma reeleição para o período subsequente (arts. 82 e 14, §5º, CF).'],
+   ['cons','Quantos votos são necessários para aprovar uma emenda constitucional?','3/5 dos membros de cada Casa do Congresso, em dois turnos de votação (art. 60, §2º, CF).'],
+   ['econ','O que mede a elasticidade-preço da demanda?','A variação percentual da quantidade demandada dividida pela variação percentual do preço.'],
+   ['econ','Quando a demanda é inelástica?','Quando o módulo da elasticidade é menor que 1: a quantidade varia proporcionalmente menos que o preço.'],
+   ['econ','O que é custo de oportunidade?','O valor da melhor alternativa à qual se renuncia ao fazer uma escolha.'],
+   ['econ','A curva de Phillips original relaciona quais variáveis?','Inflação (ou variação salarial) e desemprego, com relação inversa no curto prazo.'],
+   ['adm','Princípios expressos da Administração Pública no art. 37 da CF.','Legalidade, impessoalidade, moralidade, publicidade e eficiência (LIMPE).'],
+   ['adm','Atributos do ato administrativo.','Presunção de legitimidade, imperatividade, autoexecutoriedade e tipicidade.'],
+   ['rl','Negação de "Se p, então q".','p e não q (p ∧ ¬q).'],
+   ['rl','Negação de "Todo A é B".','Algum A não é B.']
+  ];
+  return {lap:1,dailyGoal:120,sound:true,theme:'dark',subjects,log:{},cards:C.map(([sid,front,back])=>({id:uid(),sid,front,back,due:0,ivl:0,ease:2.5,reps:0}))};
+}
+let S=null;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!Array.isArray(S.subjects)||!Array.isArray(S.cards))S=seed();
+/* garante compatibilidade com estado salvo anteriormente */
+if(!S.dailyGoal)S.dailyGoal=120;
+if(S.sound===undefined)S.sound=true;
+if(!S.theme)S.theme='dark';
+S.subjects.forEach(s=>{
+  if(s.totalSec===undefined)s.totalSec=s.done||0;
+  if(s.qDone===undefined)s.qDone=0;
+  if(s.qHit===undefined)s.qHit=0;
+  if(s.notes===undefined)s.notes='';
+});
+document.documentElement.dataset.theme=S.theme;
+
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+function beep(){
+  if(!S.sound)return;
+  try{
+    const Ctx=window.AudioContext||window.webkitAudioContext;
+    if(!Ctx)return;
+    const ctx=new Ctx(), o=ctx.createOscillator(), g=ctx.createGain();
+    o.type='sine'; o.frequency.setValueAtTime(587.33,ctx.currentTime);
+    o.frequency.setValueAtTime(880,ctx.currentTime+0.14);
+    g.gain.setValueAtTime(0.12,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.45);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime+0.45);
+  }catch(e){}
+}
+
+const sub=id=>S.subjects.find(s=>s.id===id);
+const logDay=()=>{const k=dkey(new Date());return S.log[k]||(S.log[k]={sec:0,rev:0,qDone:0,qHit:0})};
+const dueCards=sid=>S.cards.filter(c=>c.due<=Date.now()&&(sid==null||c.sid===sid)).sort((a,b)=>a.due-b.due);
+function streak(){
+  const active=k=>S.log[k]&&(S.log[k].sec>0||S.log[k].rev>0);
+  const d=new Date(); if(!active(dkey(d)))d.setDate(d.getDate()-1);
+  let n=0; while(active(dkey(d))){n++;d.setDate(d.getDate()-1)}
+  return n;
+}
+const curIdx=()=>S.subjects.findIndex(s=>s.done<s.target*60);
+const fmtDays=d=>{
+  if(d<=0)return '10 min';
+  if(d<30)return Math.round(d)+' d';
+  if(d<365)return (d/30).toFixed(1).replace('.0','').replace('.',',')+' m';
+  return (d/365).toFixed(1).replace('.0','').replace('.',',')+' a';
+};
+function sched(c,q){
+  let ease=c.ease, ivl=c.ivl;
+  if(q===0)return {ivl:0,ease:Math.max(1.3,ease-.2),reps:0};
+  if(q===1){ease=Math.max(1.3,ease-.15);ivl=Math.max(1,ivl*1.2)}
+  if(q===2){ivl=(c.reps===0||ivl<1)?1:ivl*ease}
+  if(q===3){ease+=.15;ivl=(c.reps===0||ivl<1)?3:Math.max(ivl*ease*1.3,ivl+2)}
+  return {ivl:Math.round(ivl*10)/10,ease,reps:c.reps+1};
+}
+
+/* estado de tela */
+let view='ciclo', study=null, edit=false, pendingDel=null, editingCard=null, tick=0;
+function openStudy(sid){
+  study={sid,queue:dueCards(sid).map(c=>c.id),flipped:false,paused:false,hit:false};
+  const s=sid&&sub(sid); if(s&&s.done>=s.target*60)study.hit=true;
+  view='study'; render();
+}
+
+/* anel do ciclo */
+function pt(cx,cy,r,a){const t=a*Math.PI/180;return [cx+r*Math.sin(t),cy-r*Math.cos(t)]}
+function arc(cx,cy,r,a0,a1){
+  const [x0,y0]=pt(cx,cy,r,a0),[x1,y1]=pt(cx,cy,r,a1);
+  return `M${x0.toFixed(2)} ${y0.toFixed(2)}A${r} ${r} 0 ${(a1-a0)>180?1:0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+}
+function ringSVG(){
+  const total=S.subjects.reduce((n,s)=>n+s.target,0)||1, cur=curIdx();
+  let a=0, out='';
+  S.subjects.forEach((s,i)=>{
+    const span=360*s.target/total, gap=Math.min(4,span*.2);
+    const a0=a+gap/2, a1=a+span-gap/2, mid=a+span/2; a+=span;
+    out+=`<path d="${arc(160,160,112,a0,a1)}" fill="none" stroke="var(--track)" stroke-width="26" stroke-linecap="butt"/>`;
+    const f=Math.min(1,s.done/(s.target*60));
+    if(f>0.002)out+=`<path d="${arc(160,160,112,a0,a0+(a1-a0)*f)}" fill="none" stroke="${i===cur?'var(--accent)':'var(--ok)'}" stroke-width="26" stroke-linecap="butt"/>`;
+    const [lx,ly]=pt(160,160,146,mid);
+    out+=`<text x="${lx.toFixed(1)}" y="${(ly+5).toFixed(1)}" text-anchor="middle" font-size="14" font-weight="600" fill="${i===cur?'var(--accent-text)':'var(--muted)'}" font-family="JetBrains Mono, monospace">${i+1}</text>`;
+  });
+  return `<svg viewBox="0 0 320 320" role="img" aria-label="Anel com as ${S.subjects.length} sessões da volta ${S.lap}">${out}</svg>`;
+}
+
+/* renderização */
+function renderHead(){
+  const due=dueCards(null).length, min=Math.floor(logDay().sec/60), st=streak();
+  const totQ=S.subjects.reduce((a,s)=>a+(s.qDone||0),0), totH=S.subjects.reduce((a,s)=>a+(s.qHit||0),0);
+  const acc=totQ?Math.round(totH/totQ*100)+'%':'—';
+  $('#stats').innerHTML=
+    `<div class="stat ${due?'hot':''}"><b>${due}</b><small>para revisar</small></div>`+
+    `<div class="stat ${min>=S.dailyGoal?'ok':''}"><b id="st-min">${min} min</b><small>meta ${S.dailyGoal}m</small></div>`+
+    `<div class="stat"><b>${acc}</b><small>acerto (${totQ}q)</small></div>`+
+    `<div class="stat"><b>${st}</b><small>${st===1?'dia seguido':'dias seguidos'}</small></div>`;
+}
+function renderNav(){
+  const due=dueCards(null).length;
+  const cur=(view==='study'&&study&&study.sid==null)?'revisao':(view==='study'?'ciclo':view);
+  const t=[['ciclo','Ciclo'],['revisao','Revisão do dia'],['cards','Meus flashcards'],['criar','Criar flashcard'],['painel','Desempenho']];
+  $('#nav').innerHTML=t.map(([v,l])=>`<button class="tab" data-a="nav" data-v="${v}" ${cur===v?'aria-current="page"':''}>${l}${v==='revisao'&&due?`<span class="n">${due}</span>`:''}</button>`).join('');
+}
+function cicloHTML(){
+  const cur=curIdx(), n=S.subjects.length, doneN=S.subjects.filter(s=>s.done>=s.target*60).length;
+  const totalMin=S.subjects.reduce((a,s)=>a+s.target,0);
+  const hrs=totalMin%60===0?`${totalMin/60} h`:`${Math.floor(totalMin/60)} h ${totalMin%60} min`;
+  const minToday=Math.floor(logDay().sec/60), goalPct=Math.min(100,Math.round(minToday/(S.dailyGoal||120)*100));
+  let center;
+  if(cur>=0){const s=S.subjects[cur];
+    center=`<span class="eyebrow">Agora · sessão ${cur+1} de ${n}</span><h2>${esc(s.name)}</h2><p>${Math.floor(s.done/60)} min de ${s.target} min</p><button class="btn primary" data-a="study" data-id="${s.id}">${s.done>0?'Continuar':'Começar'}</button>`;
+  }else center=`<span class="eyebrow">Volta ${S.lap}</span><h2>Volta concluída</h2><p>${n} de ${n} sessões feitas</p><button class="btn primary" data-a="newlap">Iniciar nova volta</button>`;
+  const rows=S.subjects.map((s,i)=>{
+    const fin=s.done>=s.target*60, now=i===cur, pct=Math.min(100,s.done/(s.target*60)*100);
+    const due=dueCards(s.id).length;
+    const qPct=s.qDone?Math.round(s.qHit/s.qDone*100)+'%':'';
+    const body=edit
+      ?`<div class="edit-in"><input type="text" id="n-${s.id}" value="${esc(s.name)}" data-f="name" data-id="${s.id}" aria-label="Nome da matéria"><input type="number" min="5" step="5" id="t-${s.id}" value="${s.target}" data-f="target" data-id="${s.id}" aria-label="Minutos da sessão"><select id="d-${s.id}" data-f="diff" data-id="${s.id}" aria-label="Dificuldade">${['fácil','médio','difícil'].map(d=>`<option ${d===s.diff?'selected':''}>${d}</option>`).join('')}</select><button class="btn sm ghost" type="button" data-a="move" data-id="${s.id}" data-dir="-1" title="Subir">↑</button><button class="btn sm ghost" type="button" data-a="move" data-id="${s.id}" data-dir="1" title="Descer">↓</button>${S.subjects.length>1?`<button class="btn sm danger ghost" type="button" data-a="delsub" data-id="${s.id}" title="Remover matéria">✕</button>`:''}</div>`
+      :`<b>${esc(s.name)}</b><span class="r-sub">${Math.floor(s.done/60)} min de ${s.target} min${qPct?` · ${qPct} acerto (${s.qDone}q)`:''}</span><div class="bar"><i style="width:${pct}%"></i></div>`;
+    return `<li class="row ${now?'now':''} ${fin?'done':''}"><span class="num">${fin?'✓':i+1}</span><div class="r-main">${body}</div>${due?`<span class="chip due">${due} p/ revisar</span>`:''}<span class="tag d-${s.diff}">${s.diff}</span><button class="btn ${now?'primary':''} sm" data-a="study" data-id="${s.id}">Estudar</button></li>`;
+  }).join('');
+  return `<div class="grid">
+    <section class="panel"><div class="ringbox">${ringSVG()}<div class="ring-center">${center}</div></div>
+      <p class="legend"><span><i style="background:var(--ok)"></i>Feito</span><span><i style="background:var(--accent)"></i>Agora</span><span><i style="background:var(--track)"></i>Próximo</span></p>
+      <div class="lapstats"><div><b>Volta ${S.lap}</b><small>em andamento</small></div><div><b>${doneN} de ${n}</b><small>sessões feitas</small></div><div><b>${hrs}</b><small>por volta</small></div></div>
+      <div class="goal-box">
+        <div class="goal-top"><span>Meta diária de hoje</span><b>${minToday} / ${S.dailyGoal} min (${goalPct}%)</b></div>
+        <div class="bar"><i style="width:${goalPct}%"></i></div>
+      </div>
+    </section>
+    <section class="panel"><div class="sec-head"><h2>Sessões da volta</h2><div class="actions"><button class="btn sm ghost" data-a="edit">${edit?'Concluir edição':'Editar ciclo'}</button>${edit?'':'<button class="btn sm ghost" data-a="newlap">Reiniciar volta</button>'}</div></div>
+      <ol class="rows">${rows}</ol>
+      ${edit?`<form class="addsub" id="f-sub"><input type="text" id="as-name" placeholder="Nova matéria" required aria-label="Nome da nova matéria"><input type="number" id="as-min" min="5" step="5" value="25" aria-label="Minutos"><select id="as-diff" aria-label="Dificuldade"><option>fácil</option><option selected>médio</option><option>difícil</option></select><button class="btn primary" type="submit">Adicionar</button></form>`:''}
+    </section></div>`;
+}
+function studyHTML(){
+  const s=study.sid&&sub(study.sid), q=study.queue, card=q.length?S.cards.find(c=>c.id===q[0]):null;
+  let head=`<div class="study-head"><div><button class="btn sm ghost" data-a="back">← Voltar</button></div><h2>${s?esc(s.name):'Revisão do dia'}</h2><button class="btn sm ghost" data-a="sound">${S.sound?'🔔 Som ativo':'🔕 Sem som'}</button></div>`;
+  let clock='';
+  if(s){
+    const pct=Math.min(100,s.done/(s.target*60)*100);
+    clock=`<div class="clock"><div class="clock-left"><span class="t" id="clock">${clk(s.done)}</span><span class="m" id="meta">meta da sessão: ${s.target} min</span></div><div class="clock-actions"><button class="btn sm" data-a="pause" id="pausebtn">${study.paused?'Retomar':'Pausar'}</button><button class="btn sm ghost" data-a="addmin" data-m="5" title="Somar 5 minutos">+5 min</button><button class="btn sm ghost" data-a="finishsub" title="Concluir sessão agora">Concluir sessão</button></div></div><div class="progress"><i id="bar" style="width:${pct}%"></i></div>`;
+  }
+  const banner=(s&&study.hit)?`<div class="banner"><span><b>Meta da sessão cumprida.</b> Você pode seguir revisando ou ir para a próxima.</span><button class="btn primary sm" data-a="next">Próxima sessão</button></div>`:'';
+  let body;
+  if(!card){
+    body=`<div class="empty"><h3>${s?'Nenhum cartão pendente nesta matéria':'Revisão concluída'}</h3><p>${s?'O cronômetro segue contando enquanto você lê teoria ou resolve questões. Use os painéis abaixo para registrar questões ou criar flashcards rápidos.':'Todos os cartões vencidos de hoje foram revisados. Volte amanhã ou crie novos cartões.'}</p>${s?'':'<button class="btn primary" data-a="nav" data-v="criar">Criar flashcard</button>'}</div>`;
+  }else{
+    const ans=study.flipped?`<div class="a"><div class="lab">Resposta</div>${esc(card.back)}</div>`:'';
+    const act=study.flipped
+      ?`<div class="rate">${['Errei','Difícil','Bom','Fácil'].map((l,i)=>`<button class="r${i}" data-a="rate" data-q="${i}">${l}<small>${fmtDays(sched(card,i).ivl)}</small></button>`).join('')}</div><p class="hint">Atalhos: 1 Errei · 2 Difícil · 3 Bom · 4 Fácil</p>`
+      :`<button class="btn primary" data-a="flip" style="padding:12px">Mostrar resposta</button><p class="hint">Atalho: barra de espaço · ${q.length} ${q.length===1?'cartão restante':'cartões restantes'}</p>`;
+    body=`<div class="card"><div><div class="lab">Pergunta</div><div class="q">${esc(card.front)}</div></div>${ans}</div>${act}`;
+  }
+  let tools='';
+  if(s){
+    const qPct=s.qDone?Math.round(s.qHit/s.qDone*100)+'%':'—';
+    tools=`<div class="study-tools">
+      <form class="stool" id="f-qlog">
+        <h3>Registrar bateria de questões (${esc(s.name)})</h3>
+        <p class="r-sub">Acumulado na matéria: <b>${s.qHit}/${s.qDone}</b> (${qPct} de acerto)</p>
+        <div class="q-row">
+          <label class="r-sub" for="q-done">Feitas:</label><input type="number" id="q-done" min="1" value="10" required>
+          <label class="r-sub" for="q-hit">Acertos:</label><input type="number" id="q-hit" min="0" value="8" required>
+          <button class="btn sm primary" type="submit">Registrar</button>
+        </div>
+      </form>
+      <form class="stool" id="f-quickcard">
+        <h3>Criar flashcard rápido (${esc(s.name)})</h3>
+        <input type="text" id="qc-front" placeholder="Pergunta ou conceito" required aria-label="Pergunta">
+        <textarea id="qc-back" placeholder="Resposta objetiva" required aria-label="Resposta"></textarea>
+        <div><button class="btn sm primary" type="submit">Salvar cartão na matéria</button></div>
+      </form>
+      <div class="stool">
+        <h3>Caderno de anotações / onde parei</h3>
+        <textarea id="s-notes" data-f="notes" data-id="${s.id}" placeholder="Ex.: Parei na aula 04, pág. 32. Revisar jurisprudência sobre ICMS...">${esc(s.notes||'')}</textarea>
+        <span class="r-sub">Salvo automaticamente nesta matéria.</span>
+      </div>
+    </div>`;
+  }
+  return `<div class="study">${head}${clock}${banner}${body}${tools}</div>`;
+}
+const clk=sec=>String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');
+function subjOpts(sel){return S.subjects.map(s=>`<option value="${s.id}" ${s.id===sel?'selected':''}>${esc(s.name)}</option>`).join('')}
+function criarHTML(){
+  return `<div class="create-grid">
+    <form class="form panel" id="f-new"><h2>Novo flashcard</h2>
+      <div class="field"><label for="c-sub">Matéria</label><select id="c-sub">${subjOpts(window._lastSub)}</select></div>
+      <div class="field"><label for="c-front">Pergunta</label><textarea id="c-front" required placeholder="Ex.: Qual o prazo da noventena?"></textarea></div>
+      <div class="field"><label for="c-back">Resposta</label><textarea id="c-back" required placeholder="Responda como você quer lembrar na prova."></textarea></div>
+      <div><button class="btn primary" type="submit">Adicionar cartão</button></div>
+      <p class="r-sub mono" id="c-count">${S.cards.length} cartões no total</p>
+    </form>
+    <form class="form panel" id="f-batch"><h2>Importar em lote</h2>
+      <p class="r-sub" style="margin:0">Cole uma linha por cartão no formato <code>Pergunta ; Resposta</code> (ou separado por tabulação).</p>
+      <div class="field"><label for="b-sub">Matéria de destino</label><select id="b-sub">${subjOpts(window._lastSub)}</select></div>
+      <div class="field"><label for="b-lines">Linhas (Pergunta ; Resposta)</label><textarea id="b-lines" required placeholder="Prazo da noventena? ; 90 dias da publicação da lei&#10;Mandato de Senador? ; 8 anos (2 legislaturas)"></textarea></div>
+      <div><button class="btn" type="submit">Importar cartões</button></div>
+    </form>
+  </div>`;
+}
+function cardsHTML(){
+  return `<section class="panel"><div class="sec-head"><h2>Meus flashcards (${S.cards.length})</h2></div>
+    <div class="toolbar">
+      <input type="search" id="c-q" placeholder="Buscar nas perguntas e respostas" aria-label="Buscar">
+      <select id="c-f" aria-label="Filtrar por matéria"><option value="">Todas as matérias</option>${subjOpts('')}</select>
+      <select id="c-st" aria-label="Filtrar por status"><option value="">Todos os status</option><option value="due">Vencidos hoje</option><option value="new">Novos (nunca revisados)</option><option value="learned">Em revisão espaçada</option></select>
+    </div>
+    <div class="clist" id="clist">${listHTML()}</div></section>`;
+}
+function listHTML(){
+  const q=($('#c-q')?$('#c-q').value:'').toLowerCase(), f=$('#c-f')?$('#c-f').value:'', st=$('#c-st')?$('#c-st').value:'';
+  const now=Date.now();
+  const l=S.cards.filter(c=>{
+    if(f&&c.sid!==f)return false;
+    if(st==='due'&&c.due>now)return false;
+    if(st==='new'&&c.reps>0)return false;
+    if(st==='learned'&&c.reps===0)return false;
+    if(q&&!(c.front+' '+c.back).toLowerCase().includes(q))return false;
+    return true;
+  });
+  if(!l.length)return `<div class="empty"><h3>Nenhum cartão encontrado</h3><p>Ajuste os filtros de busca ou crie um cartão novo.</p></div>`;
+  return l.map(c=>{
+    const s=sub(c.sid), due=c.due<=now;
+    if(editingCard===c.id){
+      return `<div class="ci"><div class="tx"><div class="edit-in" style="flex-direction:column;align-items:stretch"><select id="ec-sub-${c.id}" aria-label="Matéria">${subjOpts(c.sid)}</select><input type="text" id="ec-front-${c.id}" value="${esc(c.front)}" aria-label="Pergunta"><input type="text" id="ec-back-${c.id}" value="${esc(c.back)}" aria-label="Resposta"></div></div><div class="meta"><button class="btn sm primary" data-a="savecard" data-id="${c.id}">Salvar</button><button class="btn sm ghost" data-a="cancelcard">Cancelar</button></div></div>`;
+    }
+    const del=pendingDel===c.id?`<button class="btn sm" data-a="delok" data-id="${c.id}" style="border-color:var(--bad);color:var(--bad)">Confirmar exclusão</button><button class="btn sm ghost" data-a="delno">Cancelar</button>`:`<button class="btn sm ghost" data-a="editcard" data-id="${c.id}">Editar</button><button class="btn sm ghost" data-a="delask" data-id="${c.id}">Excluir</button>`;
+    return `<div class="ci"><div class="tx"><b>${esc(c.front)}</b><span>${esc(c.back)}</span></div><div class="meta"><span class="chip">${s?esc(s.name):'—'}</span><span class="chip ${due?'due':''}">${due?'vence hoje':'em '+fmtDays((c.due-now)/DAY)}</span>${del}</div></div>`;
+  }).join('');
+}
+function painelHTML(){
+  /* últimos 7 dias */
+  const days=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const k=dkey(d), entry=S.log[k]||{sec:0,rev:0};
+    const min=Math.round((entry.sec||0)/60);
+    const lbl=d.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.','');
+    days.push({k,min,rev:entry.rev||0,lbl,today:i===0});
+  }
+  const maxMin=Math.max(S.dailyGoal||60,...days.map(d=>d.min),1);
+  const bars=days.map(d=>{
+    const h=Math.max(4,Math.round(d.min/maxMin*105));
+    return `<div class="c-col ${d.today?'today':''}"><span class="val">${d.min}m</span><div class="pillar" style="height:${h}px" title="${d.min} min estudados · ${d.rev} revisões"></div><span class="lbl">${esc(d.lbl)}</span></div>`;
+  }).join('');
+
+  const rows=S.subjects.map(s=>{
+    const cardsN=S.cards.filter(c=>c.sid===s.id).length;
+    const totMin=Math.round((s.totalSec||s.done||0)/60);
+    const qPct=s.qDone?Math.round(s.qHit/s.qDone*100)+'%':'—';
+    return `<tr><td><b>${esc(s.name)}</b></td><td class="num-c">${totMin} min</td><td class="num-c">${cardsN}</td><td class="num-c">${s.qHit||0}/${s.qDone||0}</td><td class="num-c"><span class="chip ${s.qDone&&s.qHit/s.qDone>=0.8?'ok':(s.qDone&&s.qHit/s.qDone<0.6?'due':'')}">${qPct}</span></td></tr>`;
+  }).join('');
+
+  return `<div class="dash-grid">
+    <section class="panel">
+      <div class="sec-head"><h2>Histórico dos últimos 7 dias</h2></div>
+      <div class="chart-bars">${bars}</div>
+      <form class="addsub" id="f-goal">
+        <label for="g-min" class="r-sub" style="align-self:center;flex:1">Meta diária de estudo (minutos):</label>
+        <input type="number" id="g-min" min="15" step="15" value="${S.dailyGoal||120}">
+        <button class="btn sm primary" type="submit">Salvar meta</button>
+      </form>
+      <div class="addsub" style="justify-content:space-between;align-items:center">
+        <span class="r-sub">Backup de dados (JSON)</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn sm" type="button" data-a="export">Exportar JSON</button>
+          <label class="btn sm ghost" style="cursor:pointer">Importar JSON<input type="file" id="imp-file" accept=".json,application/json" hidden></label>
+        </div>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="sec-head"><h2>Desempenho acumulado por matéria</h2></div>
+      <div class="table-wrap">
+        <table class="perf">
+          <thead><tr><th>Matéria</th><th class="num-c">Tempo total</th><th class="num-c">Cartões</th><th class="num-c">Questões</th><th class="num-c">% Acerto</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </section>
+  </div>`;
+}
+function render(){
+  renderHead();renderNav();
+  $('#main').innerHTML=view==='ciclo'?cicloHTML():view==='study'?studyHTML():view==='criar'?criarHTML():view==='painel'?painelHTML():cardsHTML();
+}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),2000)}
+
+/* ações */
+function rate(q){
+  const id=study.queue[0], c=S.cards.find(x=>x.id===id); if(!c)return;
+  const r=sched(c,q);
+  c.ivl=r.ivl;c.ease=r.ease;c.reps=r.reps;
+  c.due=Date.now()+(q===0?10*60000:r.ivl*DAY);
+  logDay().rev++;
+  study.queue.shift(); if(q===0)study.queue.push(id);
+  study.flipped=false; save(); render();
+}
+const A={
+  nav(d){study=null;pendingDel=null;editingCard=null;if(d.v==='revisao')openStudy(null);else{view=d.v;render()}},
+  study(d){openStudy(d.id)},
+  back(){study=null;view='ciclo';render()},
+  flip(){study.flipped=true;render()},
+  rate(d){rate(+d.q)},
+  pause(){study.paused=!study.paused;$('#pausebtn').textContent=study.paused?'Retomar':'Pausar'},
+  sound(){S.sound=!S.sound;save();render();toast(S.sound?'Alerta sonoro ativado':'Alerta sonoro silenciado')},
+  theme(){S.theme=S.theme==='light'?'dark':'light';document.documentElement.dataset.theme=S.theme;save()},
+  addmin(d){
+    if(!study||!study.sid)return;
+    const s=sub(study.sid);if(!s)return;
+    const sec=(parseInt(d.m,10)||5)*60;
+    s.done+=sec; s.totalSec=(s.totalSec||0)+sec; logDay().sec+=sec;
+    if(!study.hit&&s.done>=s.target*60){study.hit=true;beep()}
+    save();render();toast('+5 min registrados');
+  },
+  finishsub(){
+    if(!study||!study.sid)return;
+    const s=sub(study.sid);if(!s)return;
+    const rem=Math.max(0,s.target*60-s.done);
+    s.done+=rem; s.totalSec=(s.totalSec||0)+rem; logDay().sec+=rem;
+    study.hit=true; beep(); save(); render(); toast('Sessão concluída');
+  },
+  next(){const i=curIdx();if(i>=0&&S.subjects[i].id!==study.sid)openStudy(S.subjects[i].id);else{study=null;view='ciclo';render()}},
+  newlap(){S.lap++;S.subjects.forEach(s=>s.done=0);save();render();toast('Nova volta iniciada')},
+  edit(){edit=!edit;render()},
+  move(d){
+    const idx=S.subjects.findIndex(s=>s.id===d.id), dir=parseInt(d.dir,10);
+    const nIdx=idx+dir;
+    if(idx<0||nIdx<0||nIdx>=S.subjects.length)return;
+    const tmp=S.subjects[idx]; S.subjects[idx]=S.subjects[nIdx]; S.subjects[nIdx]=tmp;
+    save();render();
+  },
+  delsub(d){
+    if(S.subjects.length<=1)return;
+    S.subjects=S.subjects.filter(s=>s.id!==d.id);
+    save();render();toast('Matéria removida do ciclo');
+  },
+  editcard(d){editingCard=d.id;pendingDel=null;$('#clist').innerHTML=listHTML()},
+  cancelcard(){editingCard=null;$('#clist').innerHTML=listHTML()},
+  savecard(d){
+    const c=S.cards.find(x=>x.id===d.id);if(!c)return;
+    const f=$('#ec-front-'+c.id), b=$('#ec-back-'+c.id), sb=$('#ec-sub-'+c.id);
+    if(f&&f.value.trim())c.front=f.value.trim();
+    if(b&&b.value.trim())c.back=b.value.trim();
+    if(sb&&sb.value)c.sid=sb.value;
+    editingCard=null;save();$('#clist').innerHTML=listHTML();toast('Cartão atualizado');
+  },
+  delask(d){pendingDel=d.id;editingCard=null;$('#clist').innerHTML=listHTML()},
+  delno(){pendingDel=null;$('#clist').innerHTML=listHTML()},
+  delok(d){S.cards=S.cards.filter(c=>c.id!==d.id);pendingDel=null;save();$('#clist').innerHTML=listHTML();renderHead();renderNav();toast('Cartão excluído')},
+  export(){
+    const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`giro-backup-${dkey(new Date())}.json`;
+    a.click();
+    toast('Backup exportado');
+  }
+};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b&&A[b.dataset.a])A[b.dataset.a](b.dataset)});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.id==='c-f'||t.id==='c-st'){$('#clist').innerHTML=listHTML();return}
+  if(t.id==='imp-file'&&t.files&&t.files[0]){
+    const r=new FileReader();
+    r.onload=()=>{
+      try{
+        const data=JSON.parse(r.result);
+        if(data&&Array.isArray(data.subjects)&&Array.isArray(data.cards)){
+          S=data; save(); render(); toast('Backup importado com sucesso');
+        }else toast('Arquivo inválido');
+      }catch(err){toast('Erro ao ler arquivo JSON')}
+    };
+    r.readAsText(t.files[0]);
+    return;
+  }
+  if(t.dataset&&t.dataset.f){
+    const s=sub(t.dataset.id);if(!s)return;
+    if(t.dataset.f==='name'&&t.value.trim())s.name=t.value.trim();
+    if(t.dataset.f==='target')s.target=Math.max(5,parseInt(t.value,10)||s.target);
+    if(t.dataset.f==='diff')s.diff=t.value;
+    if(t.dataset.f==='notes'){s.notes=t.value;save();return}
+    save();render();
+  }
+});
+document.addEventListener('input',e=>{
+  if(e.target.id==='c-q')$('#clist').innerHTML=listHTML();
+  if(e.target.id==='s-notes'&&e.target.dataset.id){
+    const s=sub(e.target.dataset.id);
+    if(s){s.notes=e.target.value;save()}
+  }
+});
+document.addEventListener('submit',e=>{
+  e.preventDefault();
+  if(e.target.id==='f-new'){
+    const sid=$('#c-sub').value,front=$('#c-front').value.trim(),back=$('#c-back').value.trim();
+    if(!front||!back)return;
+    window._lastSub=sid;
+    S.cards.push({id:uid(),sid,front,back,due:0,ivl:0,ease:2.5,reps:0});
+    save();$('#c-front').value='';$('#c-back').value='';$('#c-front').focus();
+    $('#c-count').textContent=S.cards.length+' cartões no total';
+    renderHead();renderNav();toast('Cartão adicionado');
+  }
+  if(e.target.id==='f-batch'){
+    const sid=$('#b-sub').value, raw=$('#b-lines').value.trim();
+    if(!raw)return;
+    window._lastSub=sid;
+    let added=0;
+    raw.split(/\r?\n/).forEach(line=>{
+      const parts=line.includes(';')?line.split(';'):line.split('\t');
+      if(parts.length>=2){
+        const front=parts[0].trim(), back=parts.slice(1).join(';').trim();
+        if(front&&back){S.cards.push({id:uid(),sid,front,back,due:0,ivl:0,ease:2.5,reps:0});added++}
+      }
+    });
+    if(added>0){save();$('#b-lines').value='';render();toast(`${added} cartões importados`)}
+    else toast('Use o formato: Pergunta ; Resposta');
+  }
+  if(e.target.id==='f-sub'){
+    const name=$('#as-name').value.trim();if(!name)return;
+    S.subjects.push({id:uid(),name,target:Math.max(5,parseInt($('#as-min').value,10)||25),diff:$('#as-diff').value,done:0,totalSec:0,qDone:0,qHit:0,notes:''});
+    save();render();toast('Matéria adicionada ao ciclo');
+  }
+  if(e.target.id==='f-qlog'&&study&&study.sid){
+    const s=sub(study.sid);if(!s)return;
+    const d=Math.max(1,parseInt($('#q-done').value,10)||0);
+    const h=Math.min(d,Math.max(0,parseInt($('#q-hit').value,10)||0));
+    s.qDone=(s.qDone||0)+d; s.qHit=(s.qHit||0)+h;
+    const ld=logDay(); ld.qDone=(ld.qDone||0)+d; ld.qHit=(ld.qHit||0)+h;
+    save();render();toast(`${h}/${d} questões registradas`);
+  }
+  if(e.target.id==='f-quickcard'&&study&&study.sid){
+    const front=$('#qc-front').value.trim(), back=$('#qc-back').value.trim();
+    if(!front||!back)return;
+    const card={id:uid(),sid:study.sid,front,back,due:0,ivl:0,ease:2.5,reps:0};
+    S.cards.push(card); study.queue.push(card.id);
+    save();render();toast('Cartão criado e incluído na sessão');
+  }
+  if(e.target.id==='f-goal'){
+    S.dailyGoal=Math.max(15,parseInt($('#g-min').value,10)||120);
+    save();render();toast('Meta diária atualizada');
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(view!=='study'||!study||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
+  if(e.key===' '&&!study.flipped&&study.queue.length){e.preventDefault();A.flip()}
+  else if(study.flipped&&'1234'.includes(e.key)&&e.key.length===1)rate(+e.key-1);
+});
+
+/* cronômetro da sessão */
+setInterval(()=>{
+  if(view!=='study'||!study||study.sid==null||study.paused||document.hidden)return;
+  const s=sub(study.sid);if(!s)return;
+  s.done++;s.totalSec=(s.totalSec||0)+1;logDay().sec++;tick++;
+  if(tick%5===0)save();
+  const c=$('#clock');if(c)c.textContent=clk(s.done);
+  const b=$('#bar');if(b)b.style.width=Math.min(100,s.done/(s.target*60)*100)+'%';
+  const m=$('#st-min');if(m)m.textContent=Math.floor(logDay().sec/60)+' min';
+  if(!study.hit&&s.done>=s.target*60){study.hit=true;beep();save();render()}
+},1000);
+window.addEventListener('pagehide',save);
+render();
+</script>
+</body></html>
